@@ -36,6 +36,7 @@ def read_file():
 def check_safety(own_list2_, need_list2_, free_list_):
     """
     检查当前系统状态是否安全,如果安全返回True,否则返回False
+    todo:最好能够返回出正确的序列结果
     :param own_list2_: List[List[int]]  已获得资源矩阵
     :param need_list2_: List[List[int]] 需要资源矩阵
     :param free_list_: List[int]        可用资源向量
