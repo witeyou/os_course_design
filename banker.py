@@ -3,9 +3,8 @@
 """
 描述:课设题目银行家算法的核心运算部分
 作者:计嵌162 史学超 20160323
-日期:2018-12-28
-修改:改正了read_file()方法使之正常运行
-     修改了main()方法中,能够使之接收待进入系统的进程,并且能够判断能否允许进程进入系统
+日期:2019-01-10
+修改:改变了add_list为add_data.格式e.g [0,[1, 2, 3,4]],表示第0个资源需要添加的资源向量为[1, 2, 3,4]
 """
 
 
@@ -62,7 +61,7 @@ def check_safety(own_list2_, need_list2_, free_list_):
                 print("系统中有进程过度占用资源")
                 return False
     resource_current_list = [_ for _ in free_list_]
-    process_wait_set = {_ for _ in range(len(own_list2_[0]))}
+    process_wait_set = {_ for _ in range(len(own_list2_))}
     while True:
         for x in process_wait_set:
             if satisfy_current(need_list2_[x], resource_current_list):
@@ -77,17 +76,17 @@ def check_safety(own_list2_, need_list2_, free_list_):
                 return False
 
 
-def main(total_list_=None, claim_list2_=None, own_list2_=None, add_list_=None):
+def main(total_list_=None, claim_list2_=None, own_list2_=None, add_data_=None):
     """
     程序运行的主函数部分,能够从对应的文件中读取所需的参数,也能接受传递的参数.能够判断当前程序是否安全,
     判断能否添加新的进程进入系统
     :param total_list_:  List[int]         系统总拥有资源向量
     :param claim_list2_: List[List[int]]   系统内所有进程所需最大资源矩阵
     :param own_list2_:   List[List[int]]   系统内所有进程已拥有资源矩阵
-    :param add_list_:    List[int]         等待进入系统的资源向量
+    :param add_data_:    List[int,List[int]]等待进入系统的资源向量
     :return:             Boolean           true对应系统安全,反之
     例子:前三个参数已经设置了从文件读取,最后一个添加资源向量如果有还是选择通过参数传递
-    e.g.main(add_list_ =  _resource_add_list)
+    e.g.main(add_data_ =  _resource_add_data)
     """
     if total_list_ is None and claim_list2_ is None and own_list2_ is None:
         resource_total_list, resource_claim_list2, resource_own_list2 = read_file()
@@ -116,7 +115,7 @@ def main(total_list_=None, claim_list2_=None, own_list2_=None, add_list_=None):
     else:
         print("系统可用资源向量为:", resource_free_list)
 
-    if add_list_ is None:
+    if add_data_ is None:
         if check_safety(resource_own_list2, resource_need_list2, resource_free_list):
             print("系统是安全的")
             return True
@@ -125,17 +124,20 @@ def main(total_list_=None, claim_list2_=None, own_list2_=None, add_list_=None):
             return False
     else:
         pass
-        for item_add, item_free in zip(add_list_, resource_free_list):
+        for item_add, item_free in zip(add_data_[1], resource_free_list):
             if item_add > item_free:
                 print("当前系统无法添加新的进程")
                 return False
-        resource_own_list2.append([0 for _ in range(number_resource)])
-        resource_need_list2.append(add_list_)
+        # 修改当前的拥有资源矩阵,需求矩阵和空闲资源矩阵,然后重新检查安全性
+        for _ in range(number_resource):
+            resource_own_list2[add_data_[0]][_] += add_data_[1][_]
+            resource_need_list2[add_data_[0]][_] -= add_data_[1][_]
+            resource_free_list[_] -= add_data_[1][_]
         if check_safety(resource_own_list2, resource_need_list2, resource_free_list):
-            print("该进程的添加是允许的")
+            print("该程序的申请是允许的")
             return True
         else:
-            print("该程序的插入会破坏系统安全性")
+            print("这次申请会破坏系统安全性")
             return False
 
 
@@ -155,8 +157,7 @@ if __name__ == '__main__':
         [3, 3, 4, 2],
         [5, 1, 2, 1]
     ]
-    _resource_add_list = [1, 1, 1, 1]
+    _resource_add_data = [0, [1, 0, 0, 0]]
     write_file(_resource_total_list, _resource_claim_list2, _resource_own_list2)
-    # main(_resource_total_list, _resource_claim_list2, _resource_own_list2,_resource_add_list)
-    main()
+    main(add_data_=_resource_add_data)
     print("---银行家算法运行结束---")
